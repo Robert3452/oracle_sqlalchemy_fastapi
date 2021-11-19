@@ -15,11 +15,11 @@ def get_users():
 
 
 @user.post('/users')
-def create_user(user: User):
+def create_user(payload: User):
     new_user = {
-        "name": user.name,
-        "email": user.email,
-        "password": func.encrypt(user.password.encode("utf-8"))
+        "name": payload.name,
+        "email": payload.email,
+        "password": func.encrypt(payload.password.encode("utf-8"))
     }
     conn.execute(users.insert().values(new_user))
     users.select().where()
