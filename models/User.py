@@ -9,4 +9,4 @@ users = Table("clients", meta,
               Column("email", String(255), unique=True),
               Column("password", String(255)))
 # Create the table structure
-meta.create_all(engine)
+# meta.create_all(engine)
