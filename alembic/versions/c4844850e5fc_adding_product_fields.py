@@ -36,3 +36,4 @@ def downgrade():
         op.drop_column('products', 'long_description')
     if "enabled" in tables:
         op.drop_column('products', 'enabled')
+

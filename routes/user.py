@@ -22,7 +22,9 @@ def create_user(payload: User):
         "password": func.encrypt(payload.password.encode("utf-8"))
     }
     conn.execute(users.insert().values(new_user))
-    # return order_by
+    users.select().where()
+    return
+
     # return conn.execute(users.select().where(users.c.id == result.lastrowid)).first()
 
 

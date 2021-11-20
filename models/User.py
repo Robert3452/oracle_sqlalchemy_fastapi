@@ -1,7 +1,7 @@
 from sqlalchemy import Table, Column
 from sqlalchemy.sql.sqltypes import Integer, String
 from sqlalchemy.schema import Sequence
-from config.db import meta
+from config.db import meta, engine
 
 users = Table("clients", meta,
               Column("id", Integer, Sequence("id"), primary_key=True),
