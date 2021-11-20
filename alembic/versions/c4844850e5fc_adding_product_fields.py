@@ -7,6 +7,7 @@ Create Date: 2021-11-20 07:22:08.940389
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.engine.reflection import Inspector
 
 # revision identifiers, used by Alembic.
 revision = 'c4844850e5fc'
@@ -16,10 +17,22 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("products", sa.Column('image', sa.String(255), nullable=False))
-    op.add_column("products", sa.Column('longDescription', sa.Text(), nullable=True))
+    op.add_column("products", sa.Column(
+        'image', sa.String(255), nullable=False))
+
+    op.add_column("products", sa.Column(
+        'long_description', sa.Text(), nullable=True))
+
+    op.add_column("products", sa.Column('enabled', sa.CHAR(1), default=True))
 
 
 def downgrade():
-    op.drop_column('products', 'image')
-    op.drop_column('products', 'longDescription')
+    conn = op.get_bind()
+    inspector = Inspector.from_engine(conn)
+    tables = inspector.get_table_names()
+    if "image" in tables:
+        op.drop_column('products', 'image')
+    if "longDescription" in tables:
+        op.drop_column('products', 'long_description')
+    if "enabled" in tables:
+        op.drop_column('products', 'enabled')
