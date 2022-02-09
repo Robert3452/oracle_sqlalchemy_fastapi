@@ -1,12 +1,24 @@
-from fastapi import FastAPI, Depends
 from routes.user import user
-from routes.product import product
+from routes.product import router
+from typing import List
+
+from fastapi import FastAPI, File, UploadFile
 import uvicorn
 
 app = FastAPI()
 
 app.include_router(user)
-app.include_router(product)
+app.include_router(router)
+
+
+@app.post("/files/")
+async def create_files(files: List[bytes] = File(...)):
+    return {"file_sizes": [len(file) for file in files]}
+
+
+@app.post("/uploadfiles/")
+async def create_upload_files(files: List[UploadFile] = File(...)):
+    return {"filenames": [file.filename for file in files]}
 
 
 if __name__ == "__main__":

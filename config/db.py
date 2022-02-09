@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, MetaData
 import cx_Oracle
 from env_config import Settings
+from sqlalchemy.orm import sessionmaker
 
 settings = Settings()
 
@@ -18,5 +19,21 @@ db_connection = 'oracle://{user}:{password}@{sid}'.format(
 )
 
 engine = create_engine(db_connection)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 conn = engine.connect()
 meta = MetaData()
+
+
+def get_db():
+    """
+    Function to generate db session
+    :return: Session
+    """
+    db = None
+    try:
+        db = SessionLocal()
+        yield db
+    finally:
+        db.close()

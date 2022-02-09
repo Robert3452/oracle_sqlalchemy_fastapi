@@ -1,28 +1,40 @@
-from fastapi import APIRouter
-from config.db import conn
-from models.Product import products
+from fastapi import APIRouter, Depends
+from config.db import get_db
 from schemas.Product import Product as ProductSchema
-from sqlalchemy import desc, asc
+from sqlalchemy.orm import Session
+from controllers.product import get_product, create_product, get_products, delete_product, update_product
+from typing import Any
 
-product = APIRouter()
+router = APIRouter()
+
+session: Session = Depends(get_db)
 
 
-@product.get('/products')
-def get_products():
-    return conn.execute(products.select().order_by(asc(products.c.id))).fetchall()
+# API to get list of products info
+@router.get('/products')
+def list_products():
+    prod_list = get_products(session)
+    return prod_list
 
 
-@product.post('/products')
-def store_product(payload: ProductSchema):
-    new_product = {
-        "name": payload.name,
-        "description": payload.description,
-        "image": payload.image,
-        "long_description": payload.long_description,
-        "price": payload.price,
-        "stock": payload.stock,
-        "enabled": payload.enabled if payload.enabled is not None else True
-    }
-    conn.execute(products.insert().values(new_product))
-    found_user = conn.execute(products.select().order_by(desc(products.c.id))).first()
-    return found_user.id
+@router.post('/products')
+def store_products(payload: ProductSchema):
+    prod = create_product(session, payload)
+    return prod
+
+
+@router.put('/products/{id}')
+def edit_product(id: str, payload: Any):
+    # prod = update_product(session, id, payload)
+    return {"message": id, "payload": payload}
+
+
+@router.get('/products/{id}')
+def show_product(id: int):
+    prod = get_product(session, id)
+    return prod
+
+
+@router.delete('/products/{id}')
+def delete_product(id: int):
+    return delete_product(session, id)

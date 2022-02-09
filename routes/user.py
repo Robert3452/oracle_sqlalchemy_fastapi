@@ -1,8 +1,12 @@
 from fastapi import APIRouter
 from config.db import conn
-from models.User import users
-from schemas.User import User
+from models.User import User as UserModel
+from schemas.User import User, UserUpdate
 from cryptography.fernet import Fernet
+from sqlalchemy import select, insert, delete, update
+from sqlalchemy.orm import Session
+
+session = Session()
 
 user = APIRouter()
 key = Fernet.generate_key()
@@ -11,18 +15,19 @@ func = Fernet(key)
 
 @user.get('/users')
 def get_users():
-    return conn.execute(users.select()).fetchall()
+    return conn.execute(select(UserModel)).fetchall()
 
 
 @user.post('/users')
 def create_user(payload: User):
     new_user = {
-        "name": payload.name,
+        "names": payload.names,
+        "lastnames": payload.lastnames,
+        "phone": payload.phone,
         "email": payload.email,
         "password": func.encrypt(payload.password.encode("utf-8"))
     }
-    conn.execute(users.insert().values(new_user))
-    users.select().where()
+    conn.execute(insert(UserModel).values(new_user))
     return
 
     # return conn.execute(users.select().where(users.c.id == result.lastrowid)).first()
@@ -30,22 +35,20 @@ def create_user(payload: User):
 
 @user.get("/users/{id}")
 def get_user(id: str):
-    found_user = conn.execute(users.select().where(users.c.id == id)).first()
+    found_user = conn.execute(select(UserModel).where(UserModel.id == id)).first()
     return found_user
 
 
 @user.delete("/users/{id}")
 def delete_user(id: str):
-    user_deleted = conn.execute(users.select().where(users.c.id == id)).first()
-    conn.execute(users.delete().where(users.c.id == id))
+    user_deleted = conn.execute(select().where(UserModel.id == id)).first()
+    conn.execute(delete(UserModel).where(UserModel.id == id))
     return user_deleted
 
 
 @user.put("/users/{id}", tags=["users"], response_model=User, description="Update user by id")
-def update_user(id: str, user: User):
-    conn.execute(
-        users.update()
-            .values(name=user, email=user.email, password=user.password)
-            .where(users.c.id == id)
-    )
-    return conn.execute(users.select().where(users.c.id == id)).first()
+def update_user(id: str, payload: UserUpdate):
+    user_payload = payload.dict()
+    session.query(UserModel).filter_by(id=id).update(user_payload)
+    # conn.execute(select(UserModel).where(UserModel.id == id)).first()
+    return conn.execute(select(UserModel).where(UserModel.id == id)).first()
